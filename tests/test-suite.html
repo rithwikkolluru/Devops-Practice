@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusPulse | Automated Test Suite</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            height: 95vh;
+        }
+        .control-panel {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .app-container {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 4px solid #334155;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .test-step {
+            background: #334155;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .pending { background: #64748b; color: white; }
+        .pass { background: #10b981; color: white; }
+        .fail { background: #ef4444; color: white; }
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover { background: #4338ca; }
+        h2 { margin-top: 0; color: #38bdf8; }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT SIDE: AUTOMATED TEST CONTROL PANEL -->
+    <div class="control-panel">
+        <h2>System Testing Suite</h2>
+        <p>This automated engine tests key authentication routing, profile management updates, and runtime stability triggers.</p>
+        
+        <button onclick="runAutomatedTests()">⚡ Run Integration Diagnostics</button>
+        
+        <hr style="border-color: #334155; margin: 10px 0;">
+
+        <div class="test-step" id="step1">
+            <span>1. Authentication View System Check</span>
+            <span class="status pending" id="status1">PENDING</span>
+        </div>
+
+        <div class="test-step" id="step2">
+            <span>2. Secure Dashboard Login Router</span>
+            <span class="status pending" id="status2">PENDING</span>
+        </div>
+
+        <div class="test-step" id="step3">
+            <span>3. Profile Synchronization Engine</span>
+            <span class="status pending" id="status3">PENDING</span>
+        </div>
+
+        <div class="test-step" id="step4">
+            <span>4. Event Slot Reservation Core</span>
+            <span class="status pending" id="status4">PENDING</span>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE: THE LIVE APPLICATION RUNNING IN AN IFRAME -->
+    <div class="app-container">
+        <iframe id="app-frame" src="index.html"></iframe>
+    </div>
+
+    <script>
+        function updateStatus(id, result) {
+            const el = document.getElementById(id);
+            el.innerText = result.toUpperCase();
+            el.className = `status ${result}`;
+        }
+
+        async function runAutomatedTests() {
+            const iframe = document.getElementById('app-frame');
+            const appDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const appWin = iframe.contentWindow;
+
+            // Reset execution block classes
+            for(let i=1; i<=4; i++) updateStatus(`status${i}`, 'pending');
+
+            // --- TEST 1: Verify elements are visible on initialization ---
+            await new Promise(r => setTimeout(r, 1000));
+            const loginForm = appDoc.getElementById('login-form');
+            if (loginForm && !appDoc.getElementById('login-view').classList.contains('hidden')) {
+                updateStatus('status1', 'pass');
+            } else {
+                updateStatus('status1', 'fail');
+                return;
+            }
+
+            // --- TEST 2: Simulate Login & Verify View Switching ---
+            appDoc.getElementById('login-email').value = "test.student@college.edu";
+            appDoc.getElementById('login-pass').value = "securepassword";
+            
+            // Trigger login form submit
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            submitBtn.click();
+
+            await new Promise(r => setTimeout(r, 1200));
+            const homeView = appDoc.getElementById('home-view');
+            if (homeView && !homeView.classList.contains('hidden')) {
+                updateStatus('status2', 'pass');
+            } else {
+                updateStatus('status2', 'fail');
+                return;
+            }
+
+            // --- TEST 3: Edit Profile Form Validation ---
+            appWin.switchView('profile-view'); // Programmatically go to profile
+            await new Promise(r => setTimeout(r, 800));
+            
+            appDoc.getElementById('prof-name').value = "Jane Doe";
+            appDoc.getElementById('prof-dept').value = "Aerospace Engineering";
+            
+            // Mock structural save intercepting native window prompts
+            appWin.alert = function(msg) { console.log("Intercepted App Alert: " + msg); }; 
+            
+            const profileForm = appDoc.getElementById('profile-form');
+            profileForm.querySelector('button[type="submit"]').click();
+
+            if (appWin.currentUser.name === "Jane Doe" && appDoc.getElementById('side-name').innerText === "Jane Doe") {
+                updateStatus('status3', 'pass');
+            } else {
+                updateStatus('status3', 'fail');
+                return;
+            }
+
+            // --- TEST 4: Simulate Event Booking System Execution ---
+            appWin.switchView('home-view');
+            await new Promise(r => setTimeout(r, 800));
+
+            // Select the first available booking button injected inside your app
+            const bookBtn = appDoc.querySelector('#events-container .card button');
+            if (bookBtn) {
+                bookBtn.click();
+                if (appWin.userBookings.length > 0) {
+                    updateStatus('status4', 'pass');
+                } else {
+                    updateStatus('status4', 'fail');
+                }
+            } else {
+                updateStatus('status4', 'fail');
+            }
+        }
+    </script>
+</body>
+</html>
