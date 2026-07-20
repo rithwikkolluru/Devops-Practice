@@ -34,12 +34,10 @@ pipeline {
 
         stage('Continuous Deployment (Staging)') {
             steps {
-                echo '🚀 Deploying build to the web server production directory...'
-                // In a local test system, this copies build files directly into Apache/Nginx web directories
-                sh '''
-                    mkdir -p ${DEPLOY_DIR}
-                    cp -r index.html style.css app.js ${DEPLOY_DIR}/
-                '''
+                echo '🚀 Deploying build to the web server directory...'
+                // Using /tmp avoids permission issues on your local Mac
+                sh 'mkdir -p /tmp/campus-pulse'
+                sh 'cp -r * /tmp/campus-pulse/'
             }
         }
     }
