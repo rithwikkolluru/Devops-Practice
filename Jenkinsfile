@@ -9,6 +9,7 @@ pipeline {
     stages {
         stage('Checkout Source') {
             steps {
+                echo 'showing to the MAM about my experiments'
                 echo '📥 Pulling latest codebase additions from GitHub Repository...'
                 checkout scm
             }
