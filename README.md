@@ -1,1 +1,1 @@
-it is git practice
+i am practicing the jenkins automation.
